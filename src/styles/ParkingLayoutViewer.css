@@ -1,0 +1,115 @@
+/* ParkingLayoutViewer.css */
+.parking-layout-viewer {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.layout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.layout-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.layout-legend {
+  display: flex;
+  gap: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #333;
+  border-radius: 2px;
+}
+
+.legend-color.available {
+  background-color: #d4edda;
+}
+
+.legend-color.occupied {
+  background-color: #f8d7da;
+}
+
+.legend-color.reserved {
+  background-color: #fff3cd;
+}
+
+.layout-canvas {
+  overflow: hidden;
+  user-select: none;
+}
+
+.layout-element {
+  transition: all 0.2s ease;
+}
+
+.layout-element:hover {
+  z-index: 10;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.layout-element.selected {
+  border-color: #007bff !important;
+  border-width: 3px !important;
+  z-index: 15;
+}
+
+.layout-element.parking_spot {
+  color: #333;
+  text-shadow: 1px 1px 1px rgba(255,255,255,0.8);
+}
+
+.layout-stats {
+  margin-top: 15px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.stats-row span {
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .layout-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .layout-legend {
+    justify-content: center;
+  }
+  
+  .stats-row {
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+  }
+}

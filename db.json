@@ -1,0 +1,179 @@
+{
+  "establishments": [
+    {
+      "id": 1,
+      "name": "City Mall",
+      "address": "Av Benjamín Carrión Mora, Guayaquil 090501",
+      "latitude": -2.1402794,
+      "longitude": -79.9080448,
+      "status": "Disponible",
+      "floors": [
+        {
+          "id": 1,
+          "number": "1",
+          "layout": {
+            "width": 20,
+            "height": 15,
+            "gridSize": 30,
+            "elements": [
+              {
+                "id": "spot-1",
+                "type": "parking_spot",
+                "x": 2,
+                "y": 3,
+                "width": 2,
+                "height": 4,
+                "rotation": 0,
+                "spotData": {
+                  "id": 1,
+                  "number": "A1",
+                  "status": "Disponible",
+                  "type": "regular"
+                }
+              },
+              {
+                "id": "spot-2",
+                "type": "parking_spot",
+                "x": 5,
+                "y": 3,
+                "width": 2,
+                "height": 4,
+                "rotation": 0,
+                "spotData": {
+                  "id": 2,
+                  "number": "A2",
+                  "status": "Ocupado",
+                  "type": "regular"
+                }
+              },
+              {
+                "id": "spot-3",
+                "type": "parking_spot",
+                "x": 8,
+                "y": 3,
+                "width": 2,
+                "height": 4,
+                "rotation": 0,
+                "spotData": {
+                  "id": 3,
+                  "number": "A3",
+                  "status": "Disponible",
+                  "type": "regular"
+                }
+              },
+              {
+                "id": "spot-4",
+                "type": "parking_spot",
+                "x": 11,
+                "y": 3,
+                "width": 2,
+                "height": 4,
+                "rotation": 0,
+                "spotData": {
+                  "id": 4,
+                  "number": "A4",
+                  "status": "Ocupado",
+                  "type": "regular"
+                }
+              },
+              {
+                "id": "spot-5",
+                "type": "parking_spot",
+                "x": 14,
+                "y": 3,
+                "width": 2,
+                "height": 4,
+                "rotation": 0,
+                "spotData": {
+                  "id": 5,
+                  "number": "A5",
+                  "status": "Disponible",
+                  "type": "regular"
+                }
+              },
+              {
+                "id": "spot-6",
+                "type": "parking_spot",
+                "x": 17,
+                "y": 3,
+                "width": 2,
+                "height": 4,
+                "rotation": 0,
+                "spotData": {
+                  "id": 6,
+                  "number": "A6",
+                  "status": "Ocupado",
+                  "type": "regular"
+                }
+              }
+            ]
+          },
+          "spots": [
+            {"id": 1, "number": "A1", "status": "Disponible"},
+            {"id": 2, "number": "A2", "status": "Ocupado"},
+            {"id": 3, "number": "A3", "status": "Disponible"},
+            {"id": 4, "number": "A4", "status": "Ocupado"},
+            {"id": 5, "number": "A5", "status": "Disponible"},
+            {"id": 6, "number": "A6", "status": "Ocupado"}
+
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Mall del Sol",
+      "address": "Av. de las Américas, Quito 170135",
+      "latitude": -2.1537454,
+      "longitude": -79.9068432,
+      "status": "Ocupado",
+      "floors": [
+        {
+          "id": 2,
+          "number": "1",
+          "layout": {
+            "width": 20,
+            "height": 15,
+            "gridSize": 30,
+            "elements": [
+              {
+                "id": "spot-7",
+                "type": "parking_spot",
+                "x": 2,
+                "y": 3,
+                "width": 2,
+                "height": 4,
+                "rotation": 0,
+                "spotData": {
+                  "id": 7,
+                  "number": "B1",
+                  "status": "Ocupado",
+                  "type": "regular"
+                }
+              },
+              {
+                "id": "spot-8",
+                "type": "parking_spot",
+                "x": 5,
+                "y": 3,
+                "width": 2,
+                "height": 4,
+                "rotation": 0,
+                "spotData": {
+                  "id": 8,
+                  "number": "B2",
+                  "status": "Ocupado",
+                  "type": "regular"
+                }
+              }
+            ]
+          },
+          "spots": [
+            {"id": 7, "number": "B1", "status": "Ocupado"},
+            {"id": 8, "number": "B2", "status": "Ocupado"}
+          ]
+        }
+      ]
+    }
+  ]
+}
