@@ -1,6 +1,9 @@
 // src/components/EstablishmentForm.jsx
 import React, { useState, useEffect } from 'react';
+import ParkingLayoutEditor from './ParkingLayoutEditor';
+import { layoutService } from '../services/layoutService';
 import { saveEstablishment } from '../services/api';
+import '../styles/EstablishmentForm.css'; 
 
 const EstablishmentForm = ({ establishment, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -9,11 +12,12 @@ const EstablishmentForm = ({ establishment, onClose, onSubmit }) => {
     address: '',
     latitude: '',
     longitude: '',
-    floors: [],
     status: 'Disponible'
   });
+  
   const [floors, setFloors] = useState([]);
-  const [newFloor, setNewFloor] = useState({ number: '', spots: [] });
+  const [currentEditingFloor, setCurrentEditingFloor] = useState(null);
+  const [showLayoutEditor, setShowLayoutEditor] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,7 +29,6 @@ const EstablishmentForm = ({ establishment, onClose, onSubmit }) => {
         address: establishment.address || '',
         latitude: establishment.latitude || '',
         longitude: establishment.longitude || '',
-        floors: [],
         status: establishment.status || 'Disponible'
       });
       setFloors(establishment.floors || []);
@@ -37,36 +40,56 @@ const EstablishmentForm = ({ establishment, onClose, onSubmit }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFloorChange = (e) => {
-    const { name, value } = e.target;
-    setNewFloor(prev => ({ ...prev, [name]: value }));
-  };
-
   const addFloor = () => {
-    if (!newFloor.number) {
-      setError('Floor number is required');
-      return;
-    }
-
-    // Check if floor number already exists
-    if (floors.some(floor => floor.number === newFloor.number)) {
-      setError('Floor number already exists');
-      return;
-    }
-
-    const floorToAdd = {
-      id: `temp-${Date.now()}`, // Temporary ID, will be replaced by backend
-      number: newFloor.number,
-      spots: []
+    const newFloor = {
+      id: `temp-${Date.now()}`,
+      number: String(floors.length + 1),
+      spots: [],
+      layout: null // Para guardar el layout del editor
     };
-
-    setFloors(prev => [...prev, floorToAdd]);
-    setNewFloor({ number: '', spots: [] });
-    setError('');
+    setFloors(prev => [...prev, newFloor]);
   };
 
   const removeFloor = (floorId) => {
     setFloors(prev => prev.filter(floor => floor.id !== floorId));
+  };
+
+  const openLayoutEditor = (floor) => {
+    setCurrentEditingFloor(floor);
+    setShowLayoutEditor(true);
+  };
+
+  const handleLayoutSave = async (updatedLayout) => {
+    try {
+      setLoading(true);
+      
+      // Actualizar el piso con el nuevo layout
+      const updatedFloors = floors.map(floor => 
+        floor.id === currentEditingFloor.id 
+          ? { ...floor, layout: updatedLayout, spots: updatedLayout.spots }
+          : floor
+      );
+      
+      setFloors(updatedFloors);
+      setShowLayoutEditor(false);
+      setCurrentEditingFloor(null);
+      
+      // Guardar layout en el servidor si ya existe el establecimiento
+      if (formData.id) {
+        await layoutService.saveLayout(formData.id, currentEditingFloor.id, updatedLayout);
+      }
+      
+    } catch (err) {
+      setError('Error al guardar el layout. Inténtalo de nuevo.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLayoutCancel = () => {
+    setShowLayoutEditor(false);
+    setCurrentEditingFloor(null);
   };
 
   const handleSubmit = async (e) => {
@@ -75,182 +98,226 @@ const EstablishmentForm = ({ establishment, onClose, onSubmit }) => {
     setError('');
 
     try {
-      // Combine formData with floors
+      // Validar que al menos un piso tenga layout configurado
+      const floorsWithLayout = floors.filter(floor => floor.spots.length > 0);
+      if (floorsWithLayout.length === 0) {
+        setError('Debes configurar al menos un piso con espacios de parqueo.');
+        setLoading(false);
+        return;
+      }
+
+      // Combinar datos del formulario con pisos
       const dataToSave = {
         ...formData,
-        floors: floors
+        floors: floors.map(floor => ({
+          ...floor,
+          spots: floor.spots || []
+        }))
       };
 
-      await saveEstablishment(dataToSave);
-      onSubmit();
+      const savedEstablishment = await saveEstablishment(dataToSave);
+      onSubmit(savedEstablishment);
+      
     } catch (err) {
-      setError('Failed to save establishment. Please try again.');
+      setError('Error al guardar el establecimiento. Inténtalo de nuevo.');
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-start mb-4">
-          <h2 className="text-2xl font-bold">
-            {establishment ? 'Edit Establishment' : 'Add New Establishment'}
-          </h2>
+  // Si está mostrando el editor de layout
+  if (showLayoutEditor && currentEditingFloor) {
+    return (
+      <div className="establishment-form-container">
+        <div className="layout-editor-header">
+          <h2>Editor de Layout - {formData.name} - Piso {currentEditingFloor.number}</h2>
           <button 
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            onClick={handleLayoutCancel}
+            className="close-button"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            ✕
           </button>
+        </div>
+        
+        <ParkingLayoutEditor
+          floor={currentEditingFloor}
+          onSaveLayout={handleLayoutSave}
+          onCancel={handleLayoutCancel}
+          establishmentName={formData.name}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="establishment-form-overlay">
+      <div className="establishment-form-container">
+        <div className="form-header">
+          <h2>{establishment ? 'Editar Establecimiento' : 'Crear Nuevo Establecimiento'}</h2>
+          <button onClick={onClose} className="close-button">✕</button>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="error-message">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
+        <form onSubmit={handleSubmit} className="establishment-form">
+          {/* Información Básica */}
+          <div className="form-section">
+            <h3>Información Básica</h3>
+            
+            <div className="form-group">
+              <label htmlFor="name">Nombre del Establecimiento *</label>
               <input
                 type="text"
+                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Ej: Mall del Sol"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Address</label>
+            <div className="form-group">
+              <label htmlFor="address">Dirección *</label>
               <input
                 type="text"
+                id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Ej: 4ª Pasaje 1 NE, Guayaquil 090513"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Latitude</label>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="latitude">Latitud *</label>
                 <input
                   type="number"
+                  id="latitude"
                   name="latitude"
                   value={formData.latitude}
                   onChange={handleChange}
                   step="any"
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="-2.1722041"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Longitude</label>
+              <div className="form-group">
+                <label htmlFor="longitude">Longitud *</label>
                 <input
                   type="number"
+                  id="longitude"
                   name="longitude"
                   value={formData.longitude}
                   onChange={handleChange}
                   step="any"
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="-79.8886425"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Status</label>
+            <div className="form-group">
+              <label htmlFor="status">Estado</label>
               <select
+                id="status"
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               >
                 <option value="Disponible">Disponible</option>
                 <option value="Ocupado">Ocupado</option>
+                <option value="Cerrado">Cerrado</option>
               </select>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-medium">Floors</h3>
-              </div>
-
-              {floors.length > 0 ? (
-                <div className="mb-4 border rounded-md divide-y">
-                  {floors.map((floor, index) => (
-                    <div key={floor.id} className="p-3 flex justify-between items-center">
-                      <div>
-                        <span className="font-medium">Floor {floor.number}</span>
-                        <span className="ml-2 text-sm text-gray-500">
-                          ({floor.spots.length} parking spots)
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFloor(floor.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-4 bg-gray-50 rounded-md mb-4">
-                  <p className="text-gray-500">No floors added yet</p>
-                </div>
-              )}
-
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h4 className="text-sm font-medium mb-2">Add New Floor</h4>
-                <div className="flex space-x-2">
-                  <div className="flex-1">
-                    <input
-                      type="number"
-                      name="number"
-                      value={newFloor.number}
-                      onChange={handleFloorChange}
-                      placeholder="Floor Number"
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={addFloor}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Add Floor
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Cancel
+          {/* Gestión de Pisos */}
+          <div className="form-section">
+            <div className="section-header">
+              <h3>Configuración de Pisos</h3>
+              <button type="button" onClick={addFloor} className="add-floor-btn">
+                <i className="fas fa-plus"></i> Agregar Piso
+              </button>
+            </div>
+
+            {floors.length > 0 ? (
+              <div className="floors-list">
+                {floors.map((floor) => (
+                  <div key={floor.id} className="floor-item">
+                    <div className="floor-info">
+                      <h4>Piso {floor.number}</h4>
+                      <div className="floor-stats">
+                        <span className="stat">
+                          <i className="fas fa-car"></i> 
+                          {floor.spots?.length || 0} espacios
+                        </span>
+                        <span className="stat">
+                          <i className="fas fa-check-circle"></i> 
+                          {floor.spots?.filter(s => s.status === 'Disponible').length || 0} disponibles
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="floor-actions">
+                      <button
+                        type="button"
+                        onClick={() => openLayoutEditor(floor)}
+                        className="edit-layout-btn"
+                      >
+                        <i className="fas fa-edit"></i> 
+                        {floor.spots?.length > 0 ? 'Editar Layout' : 'Crear Layout'}
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => removeFloor(floor.id)}
+                        className="remove-floor-btn"
+                        disabled={floors.length === 1}
+                      >
+                        <i className="fas fa-trash"></i>
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-floors-message">
+                <i className="fas fa-info-circle"></i>
+                <p>No hay pisos configurados. Agrega al menos un piso para continuar.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Acciones del Formulario */}
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="cancel-btn">
+              <i className="fas fa-times"></i> Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+            <button 
+              type="submit" 
+              disabled={loading || floors.length === 0}
+              className="save-btn"
             >
-              {loading ? 'Saving...' : 'Save Establishment'}
+              {loading ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i> Guardando...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-save"></i> 
+                  {establishment ? 'Actualizar' : 'Crear'} Establecimiento
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -1,5 +1,6 @@
 // Servicio para manejar operaciones de layout
 export const layoutService = {
+  
   saveLayout: async (establishmentId, floorId, layout) => {
     // Simular guardado en API
     console.log('Saving layout:', { establishmentId, floorId, layout });
