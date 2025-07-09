@@ -22,4 +22,59 @@ Sistema de gestión de parqueos con mapa interactivo desarrollado en React.
 
 1. Clona el repositorio:
 ```bash
+<<<<<<< HEAD
 git clone https://github.com/julio93/parking-management-system.git
+=======
+git clone https://github.com/julio93/parking-management-system.git
+
+2. Navega al directorio del proyecto:
+cd parking-management-system
+
+3. Instala las dependencias:
+npm install
+
+4. Inicia el servidor de desarrollo:
+npm start
+
+5. Abre http://localhost:3000 en tu navegador.
+
+## 🏗️ Estructura del Proyecto
+src/
+├── components/
+│   ├── EstablishmentDetails.jsx          
+│   ├── EstablishmentForm.jsx             
+│   ├── Map.jsx                           
+│   ├── Navbar.jsx                        
+│   ├── ParkingSpots.jsx                  
+│   ├── ParkingLayoutViewer.jsx           
+│   ├── ParkingLayoutEditor.jsx           
+│   ├── LayoutElementToolbar.jsx          
+│   └── SpotDetailsModal.jsx             
+├── contexts/
+│   ├── EstablishmentContext.jsx          
+│   └── LayoutContext.jsx                 
+├── pages/
+│   ├── MaintenanceView.jsx               
+│   ├── MapView.jsx                       
+│   └── LayoutManagementView.jsx          
+├── services/
+│   ├── api.js                            
+│   ├── layoutService.js                  
+│   └── parkingService.js                 
+├── types/
+│   ├── parking-layout.js                 
+│   └── establishment.js                  
+├── utils/
+│   ├── layoutUtils.js                  
+│   └── coordinateUtils.js               
+├── styles/
+│   ├── ParkingLayoutViewer.css          
+│   ├── ParkingLayoutEditor.css          
+│   ├── SpotDetailsModal.css          
+│   └── LayoutManagement.css              
+├── data/
+│   └── db.json                           
+├── App.jsx                               
+├── index.js                             
+└── index.css     
+>>>>>>> 9a1ba9dc3c6b8b2536643b5e6c30b267e7fe7941
